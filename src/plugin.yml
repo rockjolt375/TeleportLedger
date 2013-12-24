@@ -1,0 +1,13 @@
+name: TeleportLedger
+version: 0.1
+author: rockjolt375
+main: com.mythicacraft.teleportledger.TeleportLedger
+depend: [Vault]
+description: Allows use of teleportation in the form of currency
+commands:
+    tele:
+        usage: /tele info
+permissions: 
+    teleportledger.use:
+        description: Allows usage of the teleportation ledger
+        default: true
