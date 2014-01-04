@@ -2,13 +2,15 @@ package com.mythicacraft.teleportledger;
 
 import org.bukkit.entity.Player;
 
+import com.mythicacraft.teleportledger.TeleportLedger.TeleportType;
+
 public class TeleportRequest {
 	
 	private Player owner;
 	private Player requestee;
-	private TeleportLedger.TELEPORT_TYPE TYPE;
+	private TeleportType TYPE;
 	
-	public TeleportRequest(Player owner, Player requestee, TeleportLedger.TELEPORT_TYPE type){
+	public TeleportRequest(Player owner, Player requestee, TeleportType type){
 		this.owner = owner;
 		this.requestee = requestee;
 		this.TYPE = type;
@@ -30,7 +32,7 @@ public class TeleportRequest {
 		return requestee.getName().toString();
 	}
 	
-	public TeleportLedger.TELEPORT_TYPE getType(){
+	public TeleportType getType(){
 		return TYPE;
 	}
 	
@@ -42,7 +44,7 @@ public class TeleportRequest {
 		this.requestee = requestee;
 	}
 	
-	public void setType(TeleportLedger.TELEPORT_TYPE type){
+	public void setType(TeleportType type){
 		this.TYPE = type;
 	}
 	
