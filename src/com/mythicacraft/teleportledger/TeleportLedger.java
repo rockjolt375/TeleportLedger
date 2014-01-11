@@ -3,10 +3,12 @@ package com.mythicacraft.teleportledger;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Stack;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.permission.Permission;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -18,10 +20,13 @@ import com.mythicacraft.teleportledger.utilities.ConfigAccessor;
 public class TeleportLedger extends JavaPlugin{
 
 	private static final Logger log = Logger.getLogger("Minecraft");
-	public static Permission perms = null;
 	protected HashMap<String, TeleportRequest> teleportRequests = new HashMap<String, TeleportRequest>();
-	public enum TeleportType{TPA, TPAHERE}
-	public ArrayList<Player> cooldownList = new ArrayList<Player>();
+	protected HashMap<Player, Location> previousLocationMap = new HashMap<Player, Location>();
+	protected HashMap<Player, Stack<Location>> backHistoryMap = new HashMap<Player, Stack<Location>>();
+	protected ArrayList<Player> cooldownList = new ArrayList<Player>();
+	protected enum TeleportType{TPA, TPAHERE}
+	protected static Permission perms = null;
+	private final double CONFIG_VERSION = 1.2;
 	
 	 public void onDisable() {
          log.info("[TeleportLedger] Disabled!");
@@ -30,6 +35,14 @@ public class TeleportLedger extends JavaPlugin{
 	 public void onEnable() {
 		 PluginManager pm = getServer().getPluginManager();
 		 
+		 this.saveDefaultConfig();
+		 
+		 if(this.getConfig().getDouble("version") != CONFIG_VERSION){
+			 log.severe("[TeleportLedger] Config version mismatch! Disabling...");
+			 pm.disablePlugin(this);
+			 return;
+		 }
+		 
 		 if(!setupVault()) {
              pm.disablePlugin(this);
              return;
@@ -37,6 +50,7 @@ public class TeleportLedger extends JavaPlugin{
 		 setupPermissions();
 		 loadPlayerData();
 		 
+		 getCommand("back").setExecutor(new TeleCmd(this));
 		 getCommand("tptokens").setExecutor(new TeleCmd(this));
 		 getCommand("tpa").setExecutor(new TeleCmd(this));
 		 getCommand("tpahere").setExecutor(new TeleCmd(this));
@@ -45,12 +59,14 @@ public class TeleportLedger extends JavaPlugin{
 		 getCommand("tpignoreall").setExecutor(new TeleCmd(this));
 		 getCommand("tpblock").setExecutor(new TeleCmd(this));
 		 getCommand("tpunblock").setExecutor(new TeleCmd(this));
-		 getServer().getPluginManager().registerEvents(new TeleLedgerListener(), this);
+		 getCommand("tpaccept").setExecutor(new TeleCmd(this));
+		 getCommand("tpdeny").setExecutor(new TeleCmd(this));
+		 getServer().getPluginManager().registerEvents(new TeleLedgerListener(this), this);
 		 
 		 log.info("[TeleportLedger] Enabled!");
 	 }
 	
-	 public void loadPlayerData() {
+	 private void loadPlayerData() {
 
          ConfigAccessor playerData = new ConfigAccessor("players.yml");
          String pluginFolder = this.getDataFolder().getAbsolutePath() + File.separator + "data"; 

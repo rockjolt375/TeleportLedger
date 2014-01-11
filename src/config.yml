@@ -1,0 +1,27 @@
+# TeleportLedger Configuration
+version: 1.2 # Do not touch this
+#################################################
+# Starting Amount:
+# This amount will be automatically generated
+# in the players account when they join the
+# server
+
+startingAmount: 0
+
+#
+# Permissions Groups Setup:
+# Place all groups and their corresponding token
+# amounts you want to be awarded on promotion or
+# group change
+#
+# Example:
+# --------
+# Groups:
+#     Member: 0
+#     VIP: 5
+#     Iron: 10
+#     Gold: 15
+#     Diamond: 20
+
+Groups:
+    Default: 0

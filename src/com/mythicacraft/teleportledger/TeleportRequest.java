@@ -3,7 +3,6 @@ package com.mythicacraft.teleportledger;
 import org.bukkit.entity.Player;
 
 import com.mythicacraft.teleportledger.TeleportLedger.TeleportType;
-
 public class TeleportRequest {
 	
 	private Player owner;

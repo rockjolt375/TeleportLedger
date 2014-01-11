@@ -1,7 +1,7 @@
-name: TeleportLedger
-version: 0.3
-author: rockjolt375
 main: com.mythicacraft.teleportledger.TeleportLedger
+name: TeleportLedger
+version: 1.1
+author: rockjolt375
 depend: [Vault]
 description: Allows use of teleportation in the form of currency
 commands:
@@ -21,10 +21,18 @@ commands:
         usage: /tpblock <player>
     tpunblock:
         usage: /tpunblock <player>
+    tpaccept:
+        usage: /tpaccept
+    tpdeny:
+        usage: /tpdeny
+    back:
+        usage: /back
 permissions: 
     teleportledger.use:
         description: Allows usage of the teleportation ledger
         default: true
+    teleportledger.exempt:
+        description: Allows group exemption from ledger counts
     teleportledger.mod:
         description: Allows mods to view other players token count
         default: op

@@ -1,6 +1,7 @@
 package com.mythicacraft.teleportledger;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -21,6 +22,12 @@ import com.mythicacraft.teleportledger.utilities.ConfigAccessor;
  * @category www.MythicaCraft.com
  */
 public class TeleLedgerListener implements Listener{
+	
+	TeleportLedger plugin;
+	
+	public TeleLedgerListener(TeleportLedger plugin){
+		this.plugin = plugin;
+	}
 	 /**
 	  * Listens for public teleportation commands
 	  * <p>
@@ -54,16 +61,23 @@ public class TeleLedgerListener implements Listener{
 		 }
 		 else if(cmd.contains("/tpignore ") || cmd.equalsIgnoreCase("/tpignore")){
 			 event.setMessage(cmd.replace("/tpignore", "/tpblock"));
+			 return;
 		 }
-		 else if(!cmd.contains("/tpa") && !cmd.contains("/tpahere") && !cmd.contains("/back") &&
-				 !cmd.contains("/tpback")) return;
+		 else if(!cmd.contains("/tpa ") && !cmd.contains("/tpahere") && !cmd.contains("/back") &&
+				 !cmd.contains("/tpback") || event.getPlayer().hasPermission("teleportLedger.exempt")) return;
 		 
-		 String player = event.getPlayer().getName();
+		 String player = event.getPlayer().getName().toString();
+		 
 		 if(getTeleCount(player) == 0){
 			 event.setCancelled(true);
 			 event.getPlayer().sendMessage(ChatColor.GOLD + "[TeleportLedger] " + ChatColor.RED +
-					 "You dont have enough teleport tokens.");
+						 "You dont have enough teleport tokens.");
 			 return;
+		 }
+		 if(cmd.contains("/back")){
+			 setTokenAmount(player, getTeleCount(player) - 1);
+			 event.getPlayer().sendMessage(ChatColor.GOLD + "You have " + ChatColor.BLUE + getTeleCount(player) +
+						 ChatColor.GOLD + " tokens left in your account.");
 		 }
      }
 	 
@@ -76,7 +90,6 @@ public class TeleLedgerListener implements Listener{
 	 public void onPlayerGroupChange(final PermissionEntityEvent event){
 		 if(event.getAction() == Action.RANK_CHANGED){
 			Player player = (Player) event.getEntity();
-			
 			String group = TeleportLedger.perms.getPrimaryGroup(player);
 			groupChangedUpdate(player, group);
 		 }
@@ -93,8 +106,8 @@ public class TeleLedgerListener implements Listener{
 		ConfigAccessor playerData = new ConfigAccessor("players.yml");
 		
 		 if(!playerData.getConfig().contains(player)){
-			 playerData.getConfig().set(player + ".amount", 0);
-			 playerData.getConfig().set(player + ".ignoreAll", true);
+			 playerData.getConfig().set(player + ".amount", plugin.getConfig().getInt("startingAmount"));
+			 playerData.getConfig().set(player + ".ignoreAll", false);
 			 playerData.getConfig().set(player + ".blockedPlayers", new ArrayList<String>());
 			 playerData.saveConfig();
 		 }
@@ -108,29 +121,25 @@ public class TeleLedgerListener implements Listener{
 	  */
 	public void groupChangedUpdate(Player player, String group){
 		 int count = getTeleCount(player.toString());
-		 switch(group){
-		 case "Member":
-			 break;
-		 case "Stone":
-			 setTokenAmount(player.toString(), ++count);
-			 break;
-		 case "Coal":
-			 setTokenAmount(player.toString(), count + 3);
-			 break;
-		 case "Iron":
-			 setTokenAmount(player.toString(), count + 5);
-			 break;
-		 case "Gold":
-			 setTokenAmount(player.toString(), count + 10);
-			 break;
-		 case "Diamond":
-			 setTokenAmount(player.toString(), count + 15);
-			 break;
-		 case "Emerald":
-			 setTokenAmount(player.toString(), count + 20);
-			 break;
+		 List<String> groups = getGroups();
+		 
+		 for(int i=0; i<groups.size();i++){
+			 if(groups.get(i).equalsIgnoreCase(group)){
+				 setTokenAmount(player.getName().toString(), count +
+						 plugin.getConfig().getInt(groups.get(i)));
+			 }
 		 }
 	 }
+	
+	
+	/**
+	 * Returns list of groups defined in config.yml
+	 * 
+	 * @return 		Returns list of groups
+	 */
+	private List<String> getGroups(){
+		return plugin.getConfig().getStringList("Groups");
+	}
 	 
 	 /**
 	  * Retrieves amount of teleport tokens to Player's account
@@ -138,7 +147,7 @@ public class TeleLedgerListener implements Listener{
 	  * @param player	Player currently being evaluated
 	  * @return			returns string count of player tokens
 	  */
-	public int getTeleCount(String player){
+	private int getTeleCount(String player){
 		 ConfigAccessor playerData = new ConfigAccessor("players.yml");
 		 return playerData.getConfig().getInt(player + ".amount");
 	 }
@@ -147,7 +156,7 @@ public class TeleLedgerListener implements Listener{
 	 * @param player	Player currently being evaluated
 	 * @param tpCount	Int containing updated account balance
 	 */
-	public void setTokenAmount(String player, int tpCount){
+	private void setTokenAmount(String player, int tpCount){
 		 ConfigAccessor playerData = new ConfigAccessor("players.yml");
 		 playerData.getConfig().set(player + ".amount", tpCount);
 		 playerData.saveConfig();
